@@ -30,26 +30,28 @@ RCT_EXPORT_METHOD(isSensorAvailable:(RCTPromiseResolveBlock)resolve rejecter:(RC
     }
     else if(la_error.code == -8)
     {
-        canEvaluatePolicy = [context canEvaluatePolicy:LAPolicyDeviceOwnerAuthentication error:&la_error];
-        
-        if (canEvaluatePolicy) {
-            NSString *biometryType = [self getBiometryType:context];
-            NSDictionary *result = @{
-                @"available": @(YES),
-                @"biometryType": biometryType
-            };
-            
-            resolve(result);
-        }
-        else {
-            NSString *errorMessage = [NSString stringWithFormat:@"%@", la_error];
-            NSDictionary *result = @{
-                @"available": @(NO),
-                @"error": errorMessage
-            };
-            
-            resolve(result);
-        }
+        NSString *msg = @"需要Passcode 以啟動TouchID 或 FaceID";
+        [context evaluatePolicy:LAPolicyDeviceOwnerAuthentication localizedReason:msg reply:^(BOOL success, NSError * _Nullable error) {
+            if(success)
+            {
+                NSString *biometryType = [self getBiometryType:context];
+                NSDictionary *result = @{
+                    @"available": @(YES),
+                    @"biometryType": biometryType
+                };
+                
+                resolve(result);
+            }
+            else {
+                NSString *errorMessage = [NSString stringWithFormat:@"%@", la_error];
+                NSDictionary *result = @{
+                    @"available": @(NO),
+                    @"error": errorMessage
+                };
+                
+                resolve(result);
+            }
+        }];
     }
     else {
         NSString *errorMessage = [NSString stringWithFormat:@"%@", la_error];
